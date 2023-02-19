@@ -1,24 +1,6 @@
 {
     "configurations": [
         {
-            "name": "Linux",
-            "includePath": [
-                "/home/affra/projects/autoflight_avr/**"
-            ],
-            "defines": [],
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c17",
-            "cppStandard": "gnu++14",
-            "intelliSenseMode": "linux-gcc-x64",
-            "mergeConfigurations": false,
-            "browse": {
-                "path": [
-                    "${workspaceFolder}/**"
-                ],
-                "limitSymbolsToIncludedHeaders": true
-            }
-        },
-        {
             "name": "avr-c++",
             "includePath": [
                 "/usr/lib/avr/include/**",
@@ -40,6 +22,22 @@
                 ],
                 "limitSymbolsToIncludedHeaders": true
             }
+        },
+        {
+            "name": "avr-c++ (mac)",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/Cellar/avr-gcc@9/9.3.0_3/avr/include/**"
+            ],
+            "defines": [],
+            "cStandard": "c11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerPath": "/usr/local/bin/avr-g++",
+            "compilerArgs": [
+                "-mmcu=atmega328p",
+                "-std=gnu++14"
+            ],
         }
     ],
     "version": 4
