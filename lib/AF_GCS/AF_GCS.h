@@ -4,8 +4,6 @@
 /// @file   AF_GCS.h
 /// @brief  provides an interface for communicating with the ground control system
 
-#include <vector>
-
 #define AF_GCS_COMPONENT_NAME_MAX_LEN 8
 #define AF_GCS_MESSAGE_MAX_LEN 32
 
@@ -45,7 +43,7 @@ class AF_GCS {
     private:
 
             /// inbound queue, messages are prioritized
-            std::vector<AF_GCS_Message> gcs_ib_queue;
+            // std::vector<AF_GCS_Message> gcs_ib_queue;
 
             /// singleton instance of the GCS
             static AF_GCS * _instance;
@@ -70,7 +68,7 @@ class AF_GCS {
 
 namespace af_gcs {
 
-    static _instance = nullptr;
+    static AF_GCS* _instance = nullptr;
 
     /// initializes the GCS
     AF_GCS * init() {

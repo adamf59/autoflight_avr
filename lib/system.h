@@ -37,6 +37,9 @@ namespace af_system {
 
     /// autoflight entry point, begins AF initialization and scheduler control
     void start() {
+        
+        // initialize HAL to allow for hardware access
+        AF_HAL::init();
 
         // initialize core components
 

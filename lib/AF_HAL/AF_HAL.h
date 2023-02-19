@@ -13,5 +13,26 @@ namespace AF_HAL {
     void init();
 
     /// @brief  reads a value from an analog pin
+    /// @param  pin     the pin to read from
+    /// @return the value read from the pin
+    int aread(int pin);
+
+    /// @brief  writes a value to an analog pin
+    /// @param  pin     the pin to write to
+    /// @param  value   the value to write to the pin
+    void awrite(int pin, int value);
+
+    /// @brief  reads a value from a digital pin
+    /// @param  pin     the pin to read from
+    /// @return the value read from the pin
+    int dread(int pin);
+
+    /// @brief  writes a value to a digital pin
+    /// @param  pin     the pin to write to
+    /// @param  value   the value to write to the pin
+    void dwrite(int pin, int value);
+
+    
+
 
 }

@@ -5,9 +5,6 @@
 /// @brief  provides an interface for routing messages to different
 ///         loggers, such as the GCS, SD card, or serial port
 
-#include <vector>
-
-
 // reserved logger destinations
 #define AF_LOG_TO_TELMETRY (1 << 0)
 #define AF_LOG_TO_SD (1 << 1)

@@ -9,7 +9,8 @@
 #define NDEBUG
 
 #include <stdlib.h>
- 
+#include <stdint.h>
+
 /// max length of an `AP_Variable` identifier
 #define AF_VAR_MAX_IDFR_LEN 16
 
@@ -40,7 +41,7 @@ class AF_Variable_Storage {
         uint16_t get_num_variables(void) const { return _num_variables; }
 
         /// get the variable with the given identifier
-        AF_Variable* get_variable(af_var_idfr_t idfr) const { return _variables.at(idfr); }
+        // AF_Variable* get_variable(af_var_idfr_t idfr) const { return _variables.at(idfr); }
 
         /// get the singleton instance
         static AF_Variable_Storage* get_instance(void) {
@@ -55,7 +56,7 @@ class AF_Variable_Storage {
         /// the number of variables
         uint16_t _num_variables = 0;
         /// mapping of variable id -> variable id's pointer
-        std::map<af_var_idfr_t, AF_Variable*> _variables;
+        // std::map<af_var_idfr_t, AF_Variable*> _variables;
     
     private:
         /// the singleton instance
@@ -72,13 +73,13 @@ class AF_Variable_Storage {
         bool add_variable(AF_Variable* var) {
             
             // check if the variable already exists
-            if (_variables.find(var->get_idfr()) != _variables.end()) {
+            // if (_variables.find(var->get_idfr()) != _variables.end()) {
                 // variable already exists
-                return false;
-            }
+                // return false;
+            // }
             
             /// put the varaible in the map
-            _variables[var->get_idfr()] = var;
+            // _variables[var->get_idfr()] = var;
 
         }
 
