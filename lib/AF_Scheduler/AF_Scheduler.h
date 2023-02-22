@@ -8,8 +8,6 @@
 
 #include <AF_Variable/AF_Variable.h>
 #include <AF_HAL/AF_HAL.h>
-#include <vector>
-#include <map>
 
 enum AF_Scheduler_Task_Priority {
     AF_SCHEDULER_TASK_PRIORITY_LO = 0,
@@ -111,7 +109,7 @@ class AF_Scheduler {
 
             /// vector containing recurring tasks
             // std::vector<AF_Scheduler_Task_Spec> _recurring_tasks;
-            std::map<af_sched_task_id_t, AF_Scheduler_Task_Spec> task_map;
+            // std::map<af_sched_task_id_t, AF_Scheduler_Task_Spec> task_map;
 
             /// @brief the main loop of the scheduler 
             void _loop(void);
@@ -148,33 +146,9 @@ void AF_Scheduler::_loop() {
 
     // end time for the loop
     uint32_t l_start = AF_HAL::micros();
-
-    // loop through all recurring tasks
-    for (auto task = task_map.begin(); task != task_map.end(); task++) {
-
-        // start time for the task
-        uint32_t t_start = AF_HAL::micros();
-
-        // get the task spec
-        AF_Scheduler_Task_Spec task_spec = task->second;
-
-        // call the task function
-        task_spec.get_func()();
-
-        // calculate the time spent in the task, recompute runtime average for the task if recurring
-        uint32_t t_runtime = AF_HAL::micros() - t_start;
-        
-        if (task_spec.is_recurring()) {
-            // if a recurring task, update the average runtime
-            AF_Scheduler_Task_Spec_Recurring * task_spec_recurring = (AF_Scheduler_Task_Spec_Recurring *) &task_spec; // cast to recurring task spec
-            task_spec_recurring->notify_runtime(t_runtime);
-        } else {
-            // else if a one time task, remove it from the list of tasks
-            task_map.erase(task);
-        }
-
-    }
-
+    
+    // run the tasks
+    
     // calculate the time spent in the loop, recompute runtime average for the loop
     uint32_t l_runtime = AF_HAL::micros() - l_start;
     notify_loop_runtime(l_runtime);

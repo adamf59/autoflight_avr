@@ -5,11 +5,12 @@
 /// @brief  provides an interface for routing messages to different
 ///         loggers, such as the GCS, SD card, or serial port
 
+#include <stdint.h>
+
 // reserved logger destinations
 #define AF_LOG_TO_TELMETRY (1 << 0)
 #define AF_LOG_TO_SD (1 << 1)
 #define AF_LOG_TO_SERIAL (1 << 2)
-
 
 enum AF_Logger_Stream: uint8_t {
     AF_LOGGER_STREAM_ALL = 0,
@@ -17,7 +18,6 @@ enum AF_Logger_Stream: uint8_t {
     AF_LOGGER_STREAM_SD,
     AF_LOGGER_STREAM_SERIAL
 };
-
 
 class AF_Logger {
 
@@ -45,6 +45,5 @@ class AF_Logger {
 /// macro for logging a message to all (open) streams, including unreserved streams.
 /// @param message the message to log
 #define AF_LOG_TO_ALL(message) AF_Logger::log(AF_LOGGER_STREAM_ALL, message)
-
 
 #endif

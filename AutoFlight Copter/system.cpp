@@ -1,4 +1,5 @@
 #include <system.h>
+#include <AF_HAL/serial_hal.h>
 
 // System file for running AutoFlight on an ATmega2560 
 
@@ -12,4 +13,8 @@
 void main() {
     // initialize the system
     af_system::start();
+
+    AF_HAL::hwserial::SerialInterface0.open(BAUDR_57600);
+    // AF_HAL::hwserial::SerialInterface0.
+
 }

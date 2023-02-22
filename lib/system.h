@@ -1,3 +1,6 @@
+#ifndef AF_SYSTEM_H_
+#define AF_SYSTEM_H_
+
 
 /// @file system.h
 /// @brief provides support for initializing autoflight without providing explicit system configurations
@@ -60,3 +63,7 @@ namespace af_system {
 /// @warning will immediately cause a complete system reboot, including
 ///          flight control systems and telemetry.
 #define AF_SYSTEM_PANIC() AF_HAL::reset();
+
+#define F_CPU 16000000UL
+
+#endif
