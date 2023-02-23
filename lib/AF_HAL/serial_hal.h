@@ -37,7 +37,6 @@ class AF_SerialInterface: public Stream {
     
         /// @brief opens a serial interface on the specified pins at the specified baud rate
         /// @param buffer the buffer to use for the stream
-        /// @param buf_size the size of the buffer
         /// @param ubrrh the pointer to the baud rate register high byte
         /// @param ubrrl the pointer to the baud rate register low byte
         /// @param ucsra the pointer to the control and status register A
@@ -48,7 +47,7 @@ class AF_SerialInterface: public Stream {
         /// @param rxcie the bit to enable the receive complete interrupt
         /// @param udre the bit to enable the data register empty interrupt
         /// @param u2x the bit to enable double speed mode
-        AF_SerialInterface(uint8_t* buffer, size_t buf_size,
+        AF_SerialInterface(utilbuf::stream_buffer* buffer,
                            volatile uint8_t* ubrrh, volatile uint8_t* ubrrl,
                            volatile uint8_t* ucsra, volatile uint8_t* ucsrb,
                            volatile uint8_t* udr,
@@ -66,7 +65,9 @@ class AF_SerialInterface: public Stream {
         size_t close(void);
 
         virtual size_t write(uint8_t byte);
-        virtual size_t write(const uint8_t* bytes, size_t size);        
+        virtual size_t write(const uint8_t* bytes, size_t size); 
+
+           
 };
 
 namespace AF_HAL {

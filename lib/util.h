@@ -1,34 +1,76 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
+#include "system.h"
 #include <stdint.h>
 #include <stdlib.h>
+
+namespace utilbuf {
+
+    static uint16_t bytes_dropped = 0;
+
+    struct stream_buffer {
+        uint8_t* buffer = nullptr;
+        size_t size = 4;
+        size_t read_idx = 0;
+        size_t write_idx = 0;
+    } ;
+
+    /// @brief puts a byte into a stream buffer
+    static inline void bufferput(uint8_t c, stream_buffer* sb) {
+        // complete cycle for cyclic buffer
+        if ( sb->write_idx == sb->size ) sb->write_idx = 0;
+        // if the write head is at the read head, the buffer is full, so increment the bytes dropped counter.
+        if ( sb->write_idx == sb->read_idx ) {
+            bytes_dropped += 1;
+            return;
+        };
+        // put the new byte at the write head
+        sb->buffer[sb->write_idx] = c;
+        // advance the write head
+        sb->write_idx += 1;
+    }
+
+    static inline uint8_t bufferget(stream_buffer* sb) {
+        // complete cycle for cyclic buffer
+        if ( sb->read_idx == sb->size ) sb->read_idx = 0;
+        // if the read head is at the write head, the buffer is empty, so return 0.
+        if ( sb->read_idx == sb->write_idx ) return 0;
+        // get the byte at the read head
+        uint8_t c = sb->buffer[sb->read_idx];
+        // advance the read head
+        sb->read_idx += 1;
+        return c;
+    }
+
+}
 
 /// @brief a simple stream interface, with a buffer that can be read from and written to.
 class Stream {
 
-    private:
-        /// @brief  the size of the stream buffer
-        const size_t _size = 0;
-
     public:
         /// @brief creates a stream with a buffer of size n
         /// @param size the size of the stream buffer
-        Stream(uint8_t* buffer, size_t size);
+        Stream(utilbuf::stream_buffer* buffer) : _buffer(buffer) {};
 
         /// @brief destructor
         virtual ~Stream();
 
         /// @brief gets the next byte in the stream buffer and pops it
         /// @return the next byte in the stream buffer
-        uint8_t read();
+        uint8_t read() { return utilbuf::bufferget(_buffer); };
 
         /// @brief gets the next n bytes in the stream buffer and pops them.
         ///        if n is greater than the number of bytes in the stream buffer,
         ///        the remaining bytes will be nullptr.
         /// @param n how many bytes to read from the stream buffer
+        /// @param ap pointer to the start of the array to store the bytes in
         /// @return the next n bytes in the stream buffer
-        uint8_t* read(size_t n);
+        void read(size_t n, uint8_t* ap = nullptr) {
+            for (size_t i = 0; i < n; i++) {
+                ap[i] = utilbuf::bufferget(_buffer);
+            }
+        }
 
         /// @brief gets the next byte in the stream buffer without removing it
         /// @return the next byte in the stream buffer
@@ -59,17 +101,11 @@ class Stream {
 
         /// @brief  gets the size of the stream buffer
         /// @return the size of the stream buffer
-        size_t size() { return _size; }
+        size_t size() const { return _buffer->size; }
 
     protected:
-        /// @brief  the stream buffer
-        uint8_t* _buffer = nullptr;
-
-        /// @brief  the read index of the stream buffer
-        size_t _readIdx = 0;
-
-        /// @brief  the write index of the stream buffer
-        size_t _writeIdx = 0;
+        /// @brief  the buffer
+        utilbuf::stream_buffer* _buffer;
     
 };
 
