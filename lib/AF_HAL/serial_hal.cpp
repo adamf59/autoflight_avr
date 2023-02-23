@@ -103,7 +103,7 @@ namespace AF_HAL {
 
 #if defined(EN_SERIAL_INTERFACE_0) && defined(UBRRH) && defined(UBRRL) && defined(USART_RX_vect) && defined(UDR)
         static uint8_t serial_rx_buf_0[SERIAL_RX_BUF_SIZE] = { .size = SERIAL_RX_BUF_SIZE };
-        static AF_SerialInterface SerialInterface0(serial_rx_buf_0, SERIAL_RX_BUF_SIZE, &UBRRH, &UBRRL, &UCSRA, &UCSRB, &UDR, RXEN, TXEN, RXCIE, UDRE, U2X);
+        static AF_SerialInterface SerialInterface0(&serial_rx_buf_0, &UBRRH, &UBRRL, &UCSRA, &UCSRB, &UDR, RXEN, TXEN, RXCIE, UDRE, U2X);
         SIGNAL(USART_RX_vect) {
             uint8_t c = UDR;
             bufferput(c, &serial_rx_buf_0);
@@ -120,7 +120,7 @@ namespace AF_HAL {
 #endif
 #if defined(EN_SERIAL_INTERFACE_1) && defined(UBRR1H) && defined(UBRR1L) && defined(USART2_RX_vect) && defined(UDR2)
         static uint8_t serial_rx_buf_1[SERIAL_RX_BUF_SIZE] = { .size = SERIAL_RX_BUF_SIZE };
-        static AF_SerialInterface SerialInterface1(serial_rx_buf_1, SERIAL_RX_BUF_SIZE, &UBRR1H, &UBRR1L, &UCSR1A, &UCSR1B, &UDR1, RXEN1, TXEN1, RXCIE1, UDRE1, U2X1);
+        static AF_SerialInterface SerialInterface1(&serial_rx_buf_1, &UBRR1H, &UBRR1L, &UCSR1A, &UCSR1B, &UDR1, RXEN1, TXEN1, RXCIE1, UDRE1, U2X1);
         SIGNAL(USART2_RX_vect) {
             uint8_t c = UDR1;
             bufferput(c, &serial_rx_buf_1);
@@ -128,7 +128,7 @@ namespace AF_HAL {
 #endif
 #if defined(EN_SERIAL_INTERFACE_2) && defined(UBRR2H) && defined(UBRR2L) && defined(USART3_RX_vect) && defined(UDR2)
         static uint8_t serial_rx_buf_2[SERIAL_RX_BUF_SIZE] = { .size = SERIAL_RX_BUF_SIZE };
-        static AF_SerialInterface SerialInterface2(serial_rx_buf_2, SERIAL_RX_BUF_SIZE, &UBRR2H, &UBRR2L, &UCSR2A, &UCSR2B, &UDR2, RXEN2, TXEN2, RXCIE2, UDRE2, U2X2);
+        static AF_SerialInterface SerialInterface2(&serial_rx_buf_2, &UBRR2H, &UBRR2L, &UCSR2A, &UCSR2B, &UDR2, RXEN2, TXEN2, RXCIE2, UDRE2, U2X2);
         SIGNAL(USART3_RX_vect) {
             uint8_t c = UDR2;
             bufferput(c, &serial_rx_buf_2);
@@ -136,7 +136,7 @@ namespace AF_HAL {
 #endif
 #if defined(EN_SERIAL_INTERFACE_3) && defined(UBRR3H) && defined(UBRR3L) && defined(USART4_RX_vect) && defined(UDR3)
         static uint8_t serial_rx_buf_3[SERIAL_RX_BUF_SIZE] = { .size = SERIAL_RX_BUF_SIZE };
-        static AF_SerialInterface SerialInterface3(serial_rx_buf_3, SERIAL_RX_BUF_SIZE, &UBRR3H, &UBRR3L, &UCSR3A, &UCSR3B, &UDR3, RXEN3, TXEN3, RXCIE3, UDRE3, U2X3);
+        static AF_SerialInterface SerialInterface3(&serial_rx_buf_3, &UBRR3H, &UBRR3L, &UCSR3A, &UCSR3B, &UDR3, RXEN3, TXEN3, RXCIE3, UDRE3, U2X3);
         SIGNAL(USART3_RX_vect) {
             uint8_t c = UDR3;
             bufferput(c, &serial_rx_buf_3);
