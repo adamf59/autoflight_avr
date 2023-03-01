@@ -6,6 +6,7 @@
 ///         loggers, such as the GCS, SD card, or serial port
 
 #include <stdint.h>
+#include <util.h>
 
 // reserved logger destinations
 #define AF_LOG_TO_TELMETRY (1 << 0)
@@ -39,7 +40,7 @@ class AF_Logger {
         /// @brief  logs a message to the specified stream
         /// @param  stream  the stream to log to
         /// @param  message the message to log
-        void log(uint8_t stream, const char * message);
+        void log(Stream* stream, const char * message);
 };
 
 /// macro for logging a message to all (open) streams, including unreserved streams.

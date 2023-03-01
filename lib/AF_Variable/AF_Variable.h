@@ -14,10 +14,16 @@
 /// max length of an `AP_Variable` identifier
 #define AF_VAR_MAX_IDFR_LEN 16
 
-// define variable arg flags
+// define variable flags
+
+#define AF_VAR_FLAG_READABLE_BY_GCS (1 << 0)
+#define AF_VAR_FLAG_WRITABLE_BY_GCS (1 << 1)
+#define AF_VAR_FLAG_EEPROM_STORED (1 << 2)
+#define AF_VAR_FLAG_BLACKBOX_LOGGED (1 << 3)
 
 // define variable types
 // (new types should be added to the end of the list, old types should not be removed!)
+// these are used to encode types into eeprom storage and for some packets
 enum af_var_type {
     AF_VAR_BOOL = 0,
     AF_VAR_INT8,
@@ -93,6 +99,18 @@ class AF_Variable {
         /// get the identifier of the variable
         const char* get_idfr(void) const { return _idfr; }
 
+        // flag readers
+        
+        /// whether the gcs can change this variable on-the-fly
+        bool is_writable_by_gcs(void) const;
+        /// whether the gcs can read this variable
+        bool is_readable_by_gcs(void) const;
+        /// whether this variable is stored in EEPROM
+        bool is_eeprom_stored(void) const;
+        /// whether this variable is written to the crash-protected SD card
+        bool is_blackbox_logged(void) const;
+
+
     protected:
         /// the identifier of the variable
         const char * _idfr;
@@ -101,13 +119,14 @@ class AF_Variable {
         /// whether to publish this variable to the GCS
         bool _publish_to_gcs;
 
+        uint8_t _flags;
 
     public:
         /// constructor
-        AF_Variable(const char* idfr, af_var_type vt, bool publish_to_gcs) {
+        AF_Variable(const char* idfr, af_var_type vt, uint8_t flags) {
             _idfr = idfr;
             _vt = vt;
-            _publish_to_gcs = publish_to_gcs;
+            _flags = flags;
 
             // add the variable to the storage
             AF_Variable_Storage::get_instance()->add_variable(this);
@@ -123,11 +142,13 @@ class AF_Var_Scalar: public AF_Variable {
 
     public:
         /// constructor
-        AF_Var_Scalar(const char* idfr, const T initial_value, bool publish_to_gcs = true): AF_Variable(idfr, VT, publish_to_gcs) {
-            initial_value = val;
+        AF_Var_Scalar(const char* idfr, const T initial_value, uint8_t flags): AF_Variable(idfr, VT, flags) {
+            val = initial_value;
         }
+
         /// get value
         const T& get() const { return _val; }
+
         /// set value
         void set(const T& val) {
             if (_publish_to_gcs) {

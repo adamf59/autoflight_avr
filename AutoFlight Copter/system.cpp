@@ -15,6 +15,5 @@ void main() {
     af_system::start();
 
     AF_HAL::hwserial::SerialInterface0.open(BAUDR_57600);
-    // AF_HAL::hwserial::SerialInterface0.
 
 }

@@ -1,6 +1,9 @@
 #ifndef SERIAL_HAL_H_
 #define SERIAL_HAL_H_
 
+/// @file serial_hal.h
+/// @brief provides an interface for interfacing with hardware serial ports on AVR hardware
+
 #include <system.h>
 #include <util.h>
 #include <stdint.h>
@@ -8,9 +11,11 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-
 // temporary - enable serial interface 0
 #define EN_SERIAL_INTERFACE_0
+
+// the default interface, used for the AF_LOG macro
+#define DEFAULT_SERIAL_INTERFACE AF_HAL::hwserial::SerialInterface0
 
 #define BAUDR_9600 9600
 #define BAUDR_19200 19200
