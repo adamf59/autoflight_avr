@@ -2,8 +2,6 @@
 
 #include <lib/AF_Logger/AF_Logger.h>
 
-AF_Variable_Storage* AF_Variable_Storage::_instance;
-
 bool AF_Variable::is_readable_by_gcs(void) const {
     return _flags & AF_VAR_FLAG_READABLE_BY_GCS;
 }

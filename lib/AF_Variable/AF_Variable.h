@@ -10,6 +10,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 /// max length of an `AP_Variable` identifier
 #define AF_VAR_MAX_IDFR_LEN 16
@@ -37,8 +38,13 @@ enum af_var_type {
 
 typedef const char * af_var_idfr_t;
 
-/// management class for variables
+/// linked-list style node for storing AF_Variable instances in AF_Variable_Storage
+struct AF_Variable_Node {
+    AF_Variable_Node* next;
+    AF_Variable* var;
+};
 
+/// stores AF_Variable instances and provides access to them 
 class AF_Variable_Storage {
 
     public:
@@ -46,8 +52,21 @@ class AF_Variable_Storage {
         /// get the number of variables
         uint16_t get_num_variables(void) const { return _num_variables; }
 
-        /// get the variable with the given identifier
-        // AF_Variable* get_variable(af_var_idfr_t idfr) const { return _variables.at(idfr); }
+        /// @brief get a variable by its identifier
+        /// @param idfr the identifier of the variable
+        /// @return pointer to the variable, or nullptr if the variable does not exist
+        AF_Variable* get_variable(af_var_idfr_t idfr) {
+            /// search the linked list for the variable
+            AF_Variable_Node* node = _head;
+            while (node != nullptr) {
+                if (strcmp(node->var->get_idfr(), idfr) == 0) {
+                    return node->var;
+                }
+                node = node->next;
+            }
+            
+            return nullptr;
+        }
 
         /// get the singleton instance
         static AF_Variable_Storage* get_instance(void) {
@@ -57,38 +76,44 @@ class AF_Variable_Storage {
             return _instance;
         }
 
+        /// @brief stores a new variable
+        /// @return true if the variable was added successfully, false if the identifier already exists in the storage
+        void add_variable(AF_Variable* var) {
+            
+            // TODO: check if the identifier already exists
+
+            // add the new node to the tail end of the linked list
+            AF_Variable_Node* node = new AF_Variable_Node();
+            node->var = var;
+            node->next = nullptr;
+
+            // if the linked list is empty, set the head to the new node
+            if (_head == nullptr) {
+                _head = node;
+            } else {
+                // add to the tail
+                _tail->next = node;
+                _tail = node;
+            }
+
+            _num_variables++;
+
+        }
+
     protected:
 
         /// the number of variables
         uint16_t _num_variables = 0;
-        /// mapping of variable id -> variable id's pointer
-        // std::map<af_var_idfr_t, AF_Variable*> _variables;
-    
+        /// the head of the linked list of variables (the first node)
+        AF_Variable_Node* _head = nullptr;
+        /// the tail of the linked list of variables (the last node)
+        AF_Variable_Node* _tail = nullptr;
+        
     private:
+        /// Private constructor
+        AF_Variable_Storage() {} 
         /// the singleton instance
         static AF_Variable_Storage* _instance;
-
-
-    public:
-        /// constructor
-        AF_Variable_Storage(void) {
-            // do nothing
-        }
-        /// add a variable
-        /// @return true if the variable was added successfully, false if the identifier already exists in the storage
-        bool add_variable(AF_Variable* var) {
-            
-            // check if the variable already exists
-            // if (_variables.find(var->get_idfr()) != _variables.end()) {
-                // variable already exists
-                // return false;
-            // }
-            
-            /// put the varaible in the map
-            // _variables[var->get_idfr()] = var;
-
-        }
-
 };
 
 class AF_Variable {

@@ -11,7 +11,7 @@
 /// @param min 
 /// @param max 
 /// @return the clamped value
-double clamp(double value, double min, double max) {
+float clamp(float value, float min, float max) {
     if (value < min) {
         return min;
     } else if (value > max) {
@@ -28,7 +28,7 @@ double clamp(double value, double min, double max) {
 /// @param  out_min the minimum of the output range
 /// @param  out_max the maximum of the output range
 /// @return the mapped value
-double map(double value, double in_min, double in_max, double out_min, double out_max) {
+float map(float value, float in_min, float in_max, float out_min, float out_max) {
     return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
