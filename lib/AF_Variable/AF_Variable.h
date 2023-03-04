@@ -15,6 +15,12 @@
 /// max length of an `AP_Variable` identifier
 #define AF_VAR_MAX_IDFR_LEN 16
 
+/// macro for typedefining instances of the AF_VarScalar template.
+/// _t is the base type
+/// _name will be the name of the typedef, with AF_ prepended
+/// _vt is the enum af_var_type type
+#define AF_DEF_VARTYPE_SCALAR(_t, _name, _vt)  typedef AF_Var_Scalar<_t, _vt> AF_ ## _name;
+
 // define variable flags
 
 #define AF_VAR_FLAG_READABLE_BY_GCS (1 << 0)
@@ -135,7 +141,6 @@ class AF_Variable {
         /// whether this variable is written to the crash-protected SD card
         bool is_blackbox_logged(void) const;
 
-
     protected:
         /// the identifier of the variable
         const char * _idfr;
@@ -204,20 +209,15 @@ class AF_Var_Scalar: public AF_Variable {
         
 };
 
-
-/// macro for typedefining instances of the AF_VarScalar template.
-/// _t is the base type
-/// _name will be the name of the typedef, with AF_ prepended
-/// _vt is the enum af_var_type type
-#define AF_DEF_VARTYPE_SCALAR(_t, _name, _vt)  typedef AF_Var_Scalar<_t, _vt> AF_ ## _name;
-
-
 // define common types
-AF_DEF_VARTYPE_SCALAR(bool, Bool, AF_VAR_BOOL);    // AF_Float
+
+AF_DEF_VARTYPE_SCALAR(bool, Bool, AF_VAR_BOOL);    // AF_Bool
 AF_DEF_VARTYPE_SCALAR(float, Float, AF_VAR_FLOAT);    // AF_Float
+AF_DEF_VARTYPE_SCALAR(uint8_t, UInt8, AF_VAR_UINT8);  // AF_UInt8
 AF_DEF_VARTYPE_SCALAR(int8_t, Int8, AF_VAR_INT8);     // AF_Int8
-AF_DEF_VARTYPE_SCALAR(int16_t, Int16, AF_VAR_INT16);  // AF_Int16
-AF_DEF_VARTYPE_SCALAR(int32_t, Int32, AF_VAR_INT32);  // AF_Int32
 AF_DEF_VARTYPE_SCALAR(uint16_t, UInt16, AF_VAR_UINT16);  // AF_UInt16
+AF_DEF_VARTYPE_SCALAR(int16_t, Int16, AF_VAR_INT16);  // AF_Int16
+AF_DEF_VARTYPE_SCALAR(uint32_t, UInt32, AF_VAR_UINT32);  // AF_UInt32
+AF_DEF_VARTYPE_SCALAR(int32_t, Int32, AF_VAR_INT32);  // AF_Int32
 
 #endif

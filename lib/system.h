@@ -9,40 +9,16 @@
 #include <AF_GCS/AF_GCS.h>
 #include <AF_HAL/AF_HAL.h>
 
-namespace af_telemetry {
-
-    typedef struct {
-        bool ok;
-        char msg;
-    } AF_Init_Result;
-
-    /// convienence macro for building an AF_Init_Result
-    #define AF_INIT_RESULT(_ok, _msg) { .ok = _ok, .msg = _msg }
-
-}
-
 namespace af_system {
 
     /// load configurations needed for intialization of autoflight
     void autoflight_load_config();
 
-    /// begins initialization of autoflight 
-    af_telemetry::AF_Init_Result autoflight_init() {
-
-        // initialize sensors
-
-        // initialize flight surfaces and thrusters
-
-        // initialize GCS / telemetry
-        AF_GCS * gcs = af_gcs::init();
-        
-    }
-
     /// autoflight entry point, begins AF initialization and scheduler control
     void start() {
         
         // initialize HAL to allow for hardware access
-        AF_HAL::init();
+        // AF_HAL::init();
 
         // initialize core components
 
@@ -63,7 +39,5 @@ namespace af_system {
 /// @warning will immediately cause a complete system reboot, including
 ///          flight control systems and telemetry.
 #define AF_SYSTEM_PANIC() AF_HAL::reset();
-
-#define F_CPU 16000000UL
 
 #endif

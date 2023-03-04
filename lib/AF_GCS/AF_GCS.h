@@ -34,7 +34,7 @@ typedef struct {
     char * comp_name;
     uint8_t message_len;
     char * message;
-    
+    uint8_t crc;
 
 } AF_GCS_Message;
 

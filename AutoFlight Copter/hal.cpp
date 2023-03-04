@@ -2,8 +2,12 @@
 #include "AF_HAL/system_hal.h"
 
 void AF_HAL::init() {
-    // initialize the system
     
+#if defined(AF_SERIAL_ENABLED)
+    // initialize serial
+    AF_HAL::hwserial::SerialInterface0.open(BAUDR_57600);
+#endif
+
 };
 
 namespace AF_HAL {

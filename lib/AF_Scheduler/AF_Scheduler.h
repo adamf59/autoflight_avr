@@ -100,16 +100,14 @@ class AF_Scheduler {
             /// singleton instance of the scheduler
             static AF_Scheduler * _instance;
 
-            AF_Bool scheduler_status = AF_Bool("sch.status", false);
+            /// @brief controls the main loop of the scheduler 
+            bool scheduler_status = false;
 
             /// @brief counter for task_ids  
             af_sched_task_id_t _next_task_id = 0;
 
-            AF_UInt16 _average_loop_time_ms = AF_UInt16("sch.avg_loop_time_ms", 0);
-
-            /// vector containing recurring tasks
-            // std::vector<AF_Scheduler_Task_Spec> _recurring_tasks;
-            // std::map<af_sched_task_id_t, AF_Scheduler_Task_Spec> task_map;
+            /// @brief variable published to the GCS containing the average loop time of the scheduler
+            AF_UInt16 _average_loop_time_ms = AF_UInt16("sch.altms", 0, AF_VAR_FLAG_READABLE_BY_GCS | AF_VAR_FLAG_BLACKBOX_LOGGED);
 
             /// @brief the main loop of the scheduler 
             void _loop(void);
@@ -120,7 +118,12 @@ class AF_Scheduler {
         AF_Scheduler(void);
 
         /// @brief get the singleton instance of the scheduler
-        static AF_Scheduler * get_singleton(void) { return _instance; }
+        static AF_Scheduler * get_instance(void) {
+            if (_instance == nullptr) {
+                _instance = new AF_Scheduler();
+            }
+            return _instance;
+        }
 
         /// @brief registers a new task with the scheduler
         /// @param func the function to call for the task
@@ -161,14 +164,14 @@ void AF_Scheduler::_loop() {
 // @param _freq the frequency of the task in Hz
 // @param _priority the priority of the task
 // @return the id of the task
-#define AF_SCHEDULER_RECURRING_TASK(_func, _expected_ms, _freq, _priority) AF_Scheduler::get_singleton()->register_task(_func, _expected_ms, _freq, _priority)
+#define AF_SCHEDULER_RECURRING_TASK(_func, _expected_ms, _freq, _priority) AF_Scheduler::get_instance()->register_task(_func, _expected_ms, _freq, _priority)
 
 // macro for creating a one-time task
 // @param _func the function to call for the task
 // @param _expected_ms the expected runtime of the task in milliseconds
 // @param _priority the priority of the task
 // @return the id of the task
-#define AF_SCHEDULER_ONE_TIME_TASK(_func, _expected_ms, _priority) AF_Scheduler::get_singleton()->register_task(_func, _expected_ms, 0, _priority)
+#define AF_SCHEDULER_ONE_TIME_TASK(_func, _expected_ms, _priority) AF_Scheduler::get_instance()->register_task(_func, _expected_ms, 0, _priority)
 
 
 namespace AF_Logger {
