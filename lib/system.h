@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <AF_GCS/AF_GCS.h>
 #include <AF_HAL/AF_HAL.h>
+#include <AF_Scheduler/AF_Scheduler.h>
 
 namespace af_system {
 
@@ -29,6 +30,7 @@ namespace af_system {
         // }
 
         // give control to the scheduler
+        AF_Scheduler::get_instance()->tick_continually();
 
     }
 

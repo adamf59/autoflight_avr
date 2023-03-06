@@ -122,6 +122,11 @@ class AF_Scheduler {
 
         /// @brief causes the scheduler to run tasks and collect data (+1 tick)
         void tick(void);
+        
+        /// @brief continually calls the scheduler's tick method.
+        void tick_continually() __ATTR_NORETURN__ {
+            while(1) tick();
+        }
 
         /// @brief gets the amount of time that will be spent in the loop
         /// @return the loop time, in microseconds
