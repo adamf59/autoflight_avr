@@ -183,6 +183,7 @@ class AF_Var_Scalar: public AF_Variable {
         void set(const T& val) {
             if (_publish_to_gcs) {
                 // TODO: tell GCS that the variable updated
+
             }
             _val = val;
         }

@@ -26,7 +26,7 @@ namespace AF_HAL {
     /// @brief  resets the avr system
     void reset();
 
-    /// @brief  reads the system clock
+    /// @brief  reads the system clock. heads up! this value rolls over in about 71 min.
     /// @return the system clock in microseconds
     uint32_t micros(void);
 

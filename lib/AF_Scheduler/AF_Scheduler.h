@@ -8,170 +8,191 @@
 
 #include <AF_Variable/AF_Variable.h>
 #include <AF_HAL/AF_HAL.h>
+#include <system.h>
 
+/// @attention not currently being used, but this idea will be implemented soon.
 enum AF_Scheduler_Task_Priority {
     AF_SCHEDULER_TASK_PRIORITY_LO = 0,
     AF_SCHEDULER_TASK_PRIORITY_MD,
     AF_SCHEDULER_TASK_PRIORITY_HI,
 };
-
-typedef uint16_t af_sched_task_id_t;
-
-class AF_Scheduler_Task_Spec {
+class AF_Scheduler_Task {
 
     protected:
             
         /// the function to call for the task
         void (*func)(void);
 
-        /// the expected runtime of the task in milliseconds
-        uint16_t expected_ms;
+        /// the expected runtime of the task in microseconds
+        uint16_t expected_us;
 
         /// the frequency of the task in Hz, or 0 for a one-time task
         uint16_t freq;
 
         /// the priority of the task
-        AF_Scheduler_Task_Priority priority;
+        // AF_Scheduler_Task_Priority priority;
 
-        uint32_t average_runtime_ms = 0;
-
-    public:
-
-    AF_Scheduler_Task_Spec(void (*func)(void), uint16_t expected_ms, uint16_t freq, AF_Scheduler_Task_Priority priority) {
-        this->func = func;
-        this->expected_ms = expected_ms;
-        this->freq = freq;
-        this->priority = priority;
-    }
-
-    /// @brief gets the function to call for the task
-    void (*get_func(void))(void) {
-        return func;
-    }
-
-    /// @brief gets the expected runtime of the task in milliseconds
-    uint16_t get_expected_ms(void) {
-        return expected_ms;
-    }
-
-    /// @brief gets the frequency of the task in Hz, or 0 for a one-time task
-    uint16_t get_freq(void) {
-        return freq;
-    }
-
-    inline bool is_recurring(void) { return freq > 0; }
-
-    /// @brief gets the priority of the task
-    AF_Scheduler_Task_Priority get_priority(void) {
-        return priority;
-    }
-
-};
-
-class AF_Scheduler_Task_Spec_Recurring: public AF_Scheduler_Task_Spec  {
-
-    private:
-            
-            uint32_t average_runtime_ms = 0;
+        // the next time the task should run
+        uint32_t next_run_at = 0;
 
     public:
 
-        AF_Scheduler_Task_Spec_Recurring(void (*func)(void), uint16_t expected_ms, uint16_t freq, AF_Scheduler_Task_Priority priority) : AF_Scheduler_Task_Spec(func, expected_ms, freq, priority) {
-            
+        AF_Scheduler_Task(void (*func)(void), uint16_t expected_us, uint16_t freq) {
+            this->func = func;
+            this->expected_us = expected_us;
+            this->freq = freq;
         }
 
-        /// @brief gets the average runtime of this task 
-        uint32_t get_average_runtime_ms(void) {
-            return average_runtime_ms;
+        /// @brief runs the task's function
+        void run(uint32_t now) {
+            func();
+            next_run_at = now + get_period_us();
         }
 
-        /// @brief updates the average runtime of the task for optimising the scheduler
-        /// @param new_runtime_ms the latest runtime of the task in milliseconds
-        void notify_runtime(uint32_t new_runtime_ms) {
-            this->average_runtime_ms = average_runtime_ms;
+        /// @brief gets the expected runtime of the task in microseconds
+        uint16_t get_expected_us(void) const {
+            return expected_us;
         }
+
+        /// @brief gets the period of the task, in microseconds
+        inline uint16_t get_period_us(void) const {
+            return 1000000U / freq;
+        }
+
+        /// @brief gets the frequency of the task in Hz, or 0 for a one-time task
+        uint16_t get_freq(void) const {
+            return freq;
+        }
+
+        /// get the next time the task should run, in system microseconds
+        uint32_t get_next_run_at_us() const { return next_run_at; }
+
+        inline bool is_recurring(void) const { return freq > 0; }
+
 
 };
+
+/// linked-list style node for storing tasks sequentially
+struct AF_Scheduler_Task_Node {
+    AF_Scheduler_Task_Node* next = nullptr;
+    AF_Scheduler_Task* task;
+}; 
 
 class AF_Scheduler {
 
     private:
+            /// the single instance of AF_Scheduler 
+            static AF_Scheduler* _instance;
+            /// how many times per second the scheduler should run
+            uint16_t _loop_freq_hz;
+            /// the amount of extra time that is usable by the scheduler because tasks didn't run. 
+            uint16_t _extra_time = 0;
+            /// total ticks that have elapsed.
+            /// rolls over to 0 safely.
+            uint32_t _tick_count = 0;
+
+            /// head of the linked list containing tasks
+            AF_Scheduler_Task_Node* _head = nullptr;
+            /// the tail of the linked list containing tasks
+            AF_Scheduler_Task_Node* _tail = nullptr;
+            /// the node we're currently reading in the linked list
+            AF_Scheduler_Task_Node* _read_idx = nullptr;
+
+            // min task expected runtime in microseconds
+            uint16_t _min_expected_runtime_us = 0xFFFF;
+
+            /// Private constructor
+            AF_Scheduler(void);
             
-            /// singleton instance of the scheduler
-            static AF_Scheduler * _instance;
-
-            /// @brief controls the main loop of the scheduler 
-            bool scheduler_status = false;
-
-            /// @brief counter for task_ids  
-            af_sched_task_id_t _next_task_id = 0;
-
             /// @brief variable published to the GCS containing the average loop time of the scheduler
             AF_UInt16 _average_loop_time_ms = AF_UInt16("sch.altms", 0, AF_VAR_FLAG_READABLE_BY_GCS | AF_VAR_FLAG_BLACKBOX_LOGGED);
 
-            /// @brief the main loop of the scheduler 
-            void _loop(void);
+            /// @brief runs registered tasks for the allotted time
+            /// @param time_available_us how much time is available for running tasks in microseconds
+            void _run_tasks(uint16_t time_available_us);
+
+            /// @brief updates the average runtime of the loop for optimising the scheduler
+            /// @param new_runtime_ms the latest runtime of the loop in microseconds
+            void _notify_loop_runtime(uint32_t new_runtime_us);
 
     public:
 
-        /// @brief create a new scheduler
-        AF_Scheduler(void);
+        /// @brief gets the instance of the scheduler
+        AF_Scheduler* get_instance(void);
 
-        /// @brief get the singleton instance of the scheduler
-        static AF_Scheduler * get_instance(void) {
-            if (_instance == nullptr) {
-                _instance = new AF_Scheduler();
-            }
-            return _instance;
-        }
+        /// @brief causes the scheduler to run tasks and collect data (+1 tick)
+        void tick(void);
+
+        /// @brief gets the amount of time that will be spent in the loop
+        /// @return the loop time, in microseconds
+        uint16_t get_loop_time_us(void) const;
 
         /// @brief registers a new task with the scheduler
         /// @param func the function to call for the task
-        /// @param expected_ms the expected runtime of the task in milliseconds
+        /// @param expected_us the expected runtime of the task in microseconds
         /// @param freq the frequency of the task in Hz, or 0 for a one-time task
-        /// @param priority the priority of the task
-        /// @return the id of the task
-        af_sched_task_id_t register_task(void (*func)(void), uint16_t expected_ms, uint16_t freq, AF_Scheduler_Task_Priority priority);
-
-        /// @brief updates the average runtime of the loop for optimising the scheduler
-        /// @param new_runtime_ms the latest runtime of the loop in milliseconds
-    
-        void notify_loop_runtime(uint32_t new_runtime_ms);
-
-        /// @brief starts the scheduler
-        void start();
-
-        /// @brief stops the scheduler
-        void stop();
+        void register_task(void (*func)(void), uint16_t expected_us, uint16_t freq);
 };
 
-void AF_Scheduler::_loop() {
+void AF_Scheduler::_run_tasks(uint16_t time_available_us) {
 
-    // end time for the loop
-    uint32_t l_start = AF_HAL::micros();
-    
-    // run the tasks
-    
-    // calculate the time spent in the loop, recompute runtime average for the loop
-    uint32_t l_runtime = AF_HAL::micros() - l_start;
-    notify_loop_runtime(l_runtime);
-    
+    // keep track of when we started, so we know when to stop
+    uint32_t start = AF_HAL::micros();
+    int16_t time_left = time_available_us - (AF_HAL::micros() - start);
+
+    // loop through tasks
+
+    while (time_left >= 0) {
+        
+        AF_Scheduler_Task* cur_task = _read_idx->task;
+        uint32_t now = AF_HAL::micros();
+        // look at the next task in the list, see if we can run it
+        // - due to run AND we have enough time.
+        if (cur_task->get_next_run_at_us() <= now && cur_task->get_period_us() <= time_left) {
+            // run it
+            cur_task->run(now);
+            // is the task one time? if so, remove it.
+            if (!cur_task->is_recurring()) {
+                // TODO: this requires us to make the tasks linked list a doublely linked list
+                // so i'll skip the impl for now...
+            }
+        }        
+        // update the read index
+        _read_idx = _read_idx->next;
+        if (_read_idx == nullptr) _read_idx = _head;
+        // finally, update the time left
+        time_left = time_available_us - (AF_HAL::micros() - start);
+        
+        // prevent wasting time (i.e. if we don't have any tasks that can fill remaining time,
+        // then we'll be idling in this loop until time_left == 0). this is inefficient.
+        // so quit early if we can't do anything.
+        if (time_left < _min_expected_runtime_us) {
+            _extra_time = time_left;
+            return;
+        }
+
+    }
+
+    _extra_time = 0;
+
+}
+
+void AF_Scheduler::_notify_loop_runtime(uint32_t new_runtime_us) {
+    _average_loop_time_ms = _average_loop_time_ms + ( new_runtime_us / _tick_count );
 }
 
 // macro for creating a recurring task
 // @param _func the function to call for the task
-// @param _expected_ms the expected runtime of the task in milliseconds
+// @param _expected_us the expected runtime of the task in microseconds
 // @param _freq the frequency of the task in Hz
-// @param _priority the priority of the task
 // @return the id of the task
-#define AF_SCHEDULER_RECURRING_TASK(_func, _expected_ms, _freq, _priority) AF_Scheduler::get_instance()->register_task(_func, _expected_ms, _freq, _priority)
+#define AF_SCHEDULER_RECURRING_TASK(_func, _expected_ms, _freq) AF_Scheduler::get_instance()->register_task(_func, _expected_ms, _freq)
 
 // macro for creating a one-time task
 // @param _func the function to call for the task
-// @param _expected_ms the expected runtime of the task in milliseconds
-// @param _priority the priority of the task
+// @param _expected_us the expected runtime of the task in microseconds
 // @return the id of the task
-#define AF_SCHEDULER_ONE_TIME_TASK(_func, _expected_ms, _priority) AF_Scheduler::get_instance()->register_task(_func, _expected_ms, 0, _priority)
+#define AF_SCHEDULER_ONE_TIME_TASK(_func, _expected_ms) AF_Scheduler::get_instance()->register_task(_func, _expected_ms, 0)
 
 
 namespace AF_Logger {
