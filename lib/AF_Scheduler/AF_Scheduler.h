@@ -16,6 +16,9 @@ enum AF_Scheduler_Task_Priority {
     AF_SCHEDULER_TASK_PRIORITY_MD,
     AF_SCHEDULER_TASK_PRIORITY_HI,
 };
+
+typedef uint16_t scheduler_task_id_t;
+
 class AF_Scheduler_Task {
 
     protected:
@@ -76,6 +79,7 @@ class AF_Scheduler_Task {
 struct AF_Scheduler_Task_Node {
     AF_Scheduler_Task_Node* next = nullptr;
     AF_Scheduler_Task* task;
+    scheduler_task_id_t id;
 }; 
 
 class AF_Scheduler {
@@ -90,6 +94,8 @@ class AF_Scheduler {
             /// total ticks that have elapsed.
             /// rolls over to 0 safely.
             uint32_t _tick_count = 0;
+            /// the next id to assign to a task
+            scheduler_task_id_t _next_task_id = 0;
 
             /// head of the linked list containing tasks
             AF_Scheduler_Task_Node* _head = nullptr;
@@ -136,32 +142,35 @@ class AF_Scheduler {
         /// @param func the function to call for the task
         /// @param expected_us the expected runtime of the task in microseconds
         /// @param freq the frequency of the task in Hz, or 0 for a one-time task
-        void register_task(void (*func)(void), uint16_t expected_us, uint16_t freq);
+        scheduler_task_id_t register_task(void (*func)(void), uint16_t expected_us, uint16_t freq);
+
+        /// @brief removes a task from the scheduler
+        /// @param id the id of the task to remove
+        /// @return true if the task was removed, false if the task was not found
+        bool remove_task(scheduler_task_id_t id);
+
 };
 
 void AF_Scheduler::_run_tasks(uint16_t time_available_us) {
 
     // keep track of when we started, so we know when to stop
     uint32_t start = AF_HAL::micros();
-    int16_t time_left = time_available_us - (AF_HAL::micros() - start);
+    int16_t time_left = time_available_us;
 
-    // loop through tasks
-
-    while (time_left >= 0) {
+    while (time_left > 0) {
         
         AF_Scheduler_Task* cur_task = _read_idx->task;
         uint32_t now = AF_HAL::micros();
         // look at the next task in the list, see if we can run it
         // - due to run AND we have enough time.
-        if (cur_task->get_next_run_at_us() <= now && cur_task->get_period_us() <= time_left) {
+        if (cur_task->get_next_run_at_us() <= now && cur_task->get_expected_us() <= time_left) {
             // run it
             cur_task->run(now);
             // is the task one time? if so, remove it.
             if (!cur_task->is_recurring()) {
-                // TODO: this requires us to make the tasks linked list a doublely linked list
-                // so i'll skip the impl for now...
+                remove_task(_read_idx->id);
             }
-        }        
+        }
         // update the read index
         _read_idx = _read_idx->next;
         if (_read_idx == nullptr) _read_idx = _head;

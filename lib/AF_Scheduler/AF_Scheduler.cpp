@@ -33,7 +33,6 @@ uint16_t AF_Scheduler::get_loop_time_us(void) const {
 }
 
 void AF_Scheduler::tick(void) {
-
     // mark the task runner start time
     uint32_t start = AF_HAL::micros();
     // run tasks
@@ -46,11 +45,13 @@ void AF_Scheduler::tick(void) {
     _notify_loop_runtime(start - end);
 }
 
-void AF_Scheduler::register_task(void (*func)(void), uint16_t expected_us, uint16_t freq) {
+scheduler_task_id_t AF_Scheduler::register_task(void (*func)(void), uint16_t expected_us, uint16_t freq) {
     // create the task node
     AF_Scheduler_Task_Node* node = new AF_Scheduler_Task_Node();
     // create the task
     node->task = new AF_Scheduler_Task(func, expected_us, freq);
+    // set the task id
+    node->id = _next_task_id++;
     // place the task into the list
     if (_head == nullptr) {
         _head = node;
@@ -62,4 +63,35 @@ void AF_Scheduler::register_task(void (*func)(void), uint16_t expected_us, uint1
 
     // keep track of the min task time to prevent unused loop time
     if (expected_us < _min_expected_runtime_us) _min_expected_runtime_us = expected_us;
+
+    return node->id;
+}
+
+bool AF_Scheduler::remove_task(scheduler_task_id_t id) {
+    // search for the task
+    AF_Scheduler_Task_Node* cur = _head;
+    AF_Scheduler_Task_Node* prev = nullptr;
+
+    while (cur != nullptr) {
+        if (cur->id == id) {
+            // remove from the list
+            if (prev == nullptr) {
+                // we're removing the head
+                _head = cur->next;
+            } else {
+                prev->next = cur->next;
+            }
+            // delete the task
+            delete cur->task;
+            // delete the node
+            delete cur;
+            return true;
+        }
+        // update the prev pointer
+        prev = cur;
+        // update the current pointer
+        cur = cur->next;
+    }
+
+    return false;
 }
